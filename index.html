@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flappy Bird</title>
+    <style>
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-image: url("assets/kirk.jpeg");
+            background-size: cover;
+            background-position: center;
+        }
+
+        
+        #game-container {
+            position: relative;
+            width: 400px;
+            height: 600px;
+            margin: 0 auto;
+            background-color: #FFFFFF;
+            overflow: hidden;
+        }
+
+        #bird {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+
+            /* IMPORTANT FIXES */
+            background-image: url('assets/trump.png');
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+
+            left: 50px;   /* makes the bird appear where your logic thinks it is */
+            top: 250px;
+        }
+
+        .pipe {
+            position: absolute;
+            width: 80px;
+
+            background-repeat: no-repeat;
+            background-position: center;
+            background-image: url('assets/targets/2.jpeg');
+
+            /* THE KEY FIX */
+            background-size: 100% 100%;
+        }
+        #background {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+
+            background-image: url("assets/kirk.jpeg");
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+
+            opacity: 0.2;   /* adjust transparency */
+            z-index: 0;     /* behind everything */
+        }
+
+        #bird, .pipe {
+            z-index: 5;     /* above background */
+        }
+
+        #score {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 32px;
+            font-weight: bold;
+            color: white;
+            text-shadow: 2px 2px 4px black;
+            z-index: 10; /* stays above pipes and bird */
+            pointer-events: none; /* prevents interfering with game clicks */
+        }
+
+
+    </style>
+</head>
+<body>
+    <audio id="bgm" src="assets/ck.mp3" autoplay loop></audio>
+    <div id="game-container">
+        <div id="score">0</div>
+        <div id="background"></div>
+        <div id="bird"></div>
+        <div class="pipe" style="height: 200px; top: 0; left: 200px;"></div>
+        <div class="pipe" style="height: 300px; top: 400px; left: 300px;"></div>
+    </div>
+    <script>
+        const bird = document.getElementById("bird");
+        let birdTop = 250;
+        let birdLeft = 50;
+        let gravity = 1;
+        let gameSpeed = 2;
+        let isGameOver = false;
+        let points = 0;
+
+        const points_holder = document.getElementById('score');
+        document.getElementById("bgm").loop = true;
+
+        const targets = [
+            'assets/targets/1.jpeg',
+            'assets/targets/2.jpeg',
+            'assets/targets/3.jpeg',
+            'assets/targets/4.jpeg',
+            'assets/targets/5.jpeg',
+            'assets/targets/6.jpeg',
+            'assets/targets/7.jpeg',
+            'assets/targets/8.jpeg'
+        ];
+
+        function choose_random() 
+        {
+            const index = Math.floor(Math.random() * targets.length);
+            return targets[index];
+        }
+
+
+        function jump() {
+            console.log("JUMP RECOG!");
+            if (!isGameOver) {
+                birdTop -= 100;
+            }
+        }
+
+
+        window.addEventListener("keydown", () => {
+            document.getElementById("bgm").play();
+            jump();
+        });
+
+
+        function gameLoop() {
+            if (!isGameOver) {
+                birdTop += gravity;
+                bird.style.top = birdTop + "px";
+            }
+
+            if (birdTop <= 0 || birdTop >= 560) {
+                gameOver();
+            }
+
+            const pipes = document.querySelectorAll(".pipe");
+            pipes.forEach(pipe => {
+                const pipeLeft = parseInt(pipe.style.left);
+                if (pipeLeft > -60) {
+                    pipe.style.left = pipeLeft - gameSpeed + "px";
+
+                    // Check for collision
+                    if (
+                        birdLeft + 40 > pipeLeft &&
+                        birdLeft < pipeLeft + 60 &&
+                        birdTop + 40 > parseInt(pipe.style.top) &&
+                        birdTop < parseInt(pipe.style.top) + parseInt(pipe.style.height)
+                    ) {
+                        gameOver();
+                    }
+                } else {
+                    pipe.style.left = "400px";
+                    pipe.style.backgroundImage = `url(${choose_random()})`;
+                    if (parseInt(pipe.style.top) > 200) {
+                        points += 1;
+                        score.textContent = points;
+                    }
+                }
+            });
+
+            if (!isGameOver) {
+                requestAnimationFrame(gameLoop);
+            }
+        }
+
+        function gameOver() {
+            isGameOver = true;
+            alert("Game Over! Click OK to restart.");
+            birdTop = 250;
+            isGameOver = false;
+            const pipes = document.querySelectorAll(".pipe");
+            pipes.forEach(pipe => {
+                pipe.style.left = "400px";
+            });
+            points = 0;
+            points_holder.textContent = 0;
+        }
+
+        gameLoop();
+    </script>
+</body>
+</html>
